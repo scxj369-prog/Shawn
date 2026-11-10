@@ -1,1 +1,351 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Lucky Dessert Staff</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#fff;color:#392f2a;font-family:Arial,sans-serif}
+header{background:#fff9f5;border-bottom:1px solid #edddd1;padding:16px}
+.header{max-width:850px;margin:auto;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.logo{font-size:20px;font-weight:900}
+.subtitle{font-size:11px;color:#a38979;margin-top:5px}
+.language{display:flex;gap:5px;background:#f6e9e1;padding:4px;border-radius:30px}
+.language button{background:transparent;border:0;padding:8px;color:#9b705d}
+.language button.active{background:#d36a53;color:#fff}
+button{border:0;border-radius:11px;padding:12px;font-weight:bold;cursor:pointer}
+button:disabled{opacity:.4}
+main{max-width:850px;margin:auto;padding:16px}
+.tabs{display:flex;gap:9px;margin-bottom:18px}
+.tabs button{flex:1;background:#f4e6dc;color:#a06953}
+.tabs button.active{background:#d36a53;color:white}
+.card{background:#fffaf6;border:1px solid #efdfd4;border-radius:17px;padding:17px;margin-bottom:15px}
+h2{font-size:21px}
+.clock{font-size:clamp(30px,7vw,48px);font-weight:900;color:#ce6851;text-align:center;font-variant-numeric:tabular-nums;margin:15px 0 8px}
+.date{text-align:center;color:#9b8478;font-size:12px;margin-bottom:20px}
+.camera{border:2px dashed #e6c7b4;background:#fff;border-radius:14px;min-height:160px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:9px;overflow:hidden;padding:12px}
+video,img.preview{width:100%;max-height:280px;object-fit:contain;border-radius:10px}
+.cameraIcon{font-size:40px}
+.primary{width:100%;background:#d36a53;color:#fff;margin-top:12px}
+.secondary{width:100%;background:#f1ded1;color:#875742;margin-top:8px}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:15px}
+.in{background:#52947b;color:#fff}
+.out{background:#d36a53;color:#fff}
+.status{text-align:center;color:#997c6d;font-size:12px;margin-top:15px}
+.hidden{display:none!important}
+.monthNav{display:flex;justify-content:space-between;align-items:center;gap:9px;margin-bottom:14px}
+.monthNav button{background:#f3e4d8;color:#a05c44}
+.tableWrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th,td{padding:12px 6px;border-bottom:1px solid #ebded4;text-align:left;white-space:nowrap}
+th{background:#fff1e8;color:#94796a}
+.right{text-align:right}
+.summary{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.summary div{background:#f8e8db;border-radius:12px;padding:13px 5px;text-align:center;font-size:11px;color:#946b55}
+.summary strong{display:block;color:#ba5e46;font-size:18px;margin-top:8px}
+.note{font-size:11px;color:#a18b7e;text-align:center;margin:13px}
+.error{background:#ffeae5;color:#ae493a;padding:12px;border-radius:10px;margin-bottom:12px}
+@media(max-width:550px){
+main{padding:12px}
+.card{padding:13px}
+.logo{font-size:17px}
+th,td{font-size:10px;padding:10px 4px}
+.summary strong{font-size:15px}
+}
+</style>
+</head>
+<body>
+
+<header>
+<div class="header">
+<div>
+<div class="logo">🍮 LUCKY DESSERT</div>
+<div class="subtitle" data-en="STAFF ATTENDANCE" data-zh="员工打卡系统">STAFF ATTENDANCE</div>
+</div>
+<div class="language">
+<button id="en" class="active" onclick="language('en')">EN</button>
+<button id="zh" onclick="language('zh')">中文</button>
+</div>
+</div>
+</header>
+
+<main>
+<div class="tabs">
+<button id="homeTab" class="active" onclick="page('home')" data-en="📸 Attendance" data-zh="📸 打卡">📸 Attendance</button>
+<button id="recordTab" onclick="page('records')" data-en="🗓 My Records" data-zh="🗓 我的记录">🗓 My Records</button>
+</div>
+
+<div id="error" class="error hidden"></div>
+
+<section id="home">
+<h2 data-en="Welcome! 🧁" data-zh="欢迎回来！🧁">Welcome! 🧁</h2>
+<div class="card">
+<div class="clock" id="clock">--:--:-- --</div>
+<div class="date" id="date"></div>
+
+<div class="camera">
+<div id="placeholder" style="text-align:center">
+<div class="cameraIcon">📸</div>
+<div data-en="Live Camera Attendance" data-zh="实时相机打卡">Live Camera Attendance</div>
+</div>
+<video id="video" autoplay playsinline muted class="hidden"></video>
+<img id="preview" class="preview hidden" alt="Live photo">
+</div>
+
+<button class="secondary" id="openButton" onclick="openCamera()" data-en="📷 Open Camera" data-zh="📷 打开相机">📷 Open Camera</button>
+<button class="primary hidden" id="photoButton" onclick="takePhoto()" data-en="📸 Take Photo" data-zh="📸 拍照确认">📸 Take Photo</button>
+
+<div class="actions">
+<button class="in" onclick="attendance('in')" id="checkIn" data-en="Check In" data-zh="上班打卡">Check In</button>
+<button class="out" onclick="attendance('out')" id="checkOut" data-en="Check Out" data-zh="下班打卡">Check Out</button>
+</div>
+<div class="status" id="status"></div>
+</div>
+<div class="note" id="demoNote">DEMO MODE · Records saved on this device only</div>
+</section>
+
+<section id="records" class="hidden">
+<h2 data-en="My Records" data-zh="我的记录">My Records</h2>
+<div class="card">
+<div class="monthNav">
+<button onclick="changeMonth(-1)">❮</button>
+<strong id="month"></strong>
+<button onclick="changeMonth(1)">❯</button>
+</div>
+<div class="tableWrap">
+<table>
+<thead>
+<tr>
+<th data-en="Date" data-zh="日期">Date</th>
+<th>Check In</th>
+<th>Check Out</th>
+<th class="right" data-en="Hours" data-zh="工时">Hours</th>
+<th class="right" data-en="Salary" data-zh="工资">Salary</th>
+</tr>
+</thead>
+<tbody id="rows"></tbody>
+</table>
+</div>
+</div>
+<div class="card">
+<h3 data-en="Monthly Summary" data-zh="本月总结算">Monthly Summary</h3>
+<div class="summary">
+<div><span data-en="Days" data-zh="打卡天数">Days</span><strong id="days">0</strong></div>
+<div><span data-en="Hours" data-zh="总工时">Hours</span><strong id="hours">0h</strong></div>
+<div><span data-en="Salary" data-zh="总工资">Salary</span><strong id="salary">RM0.00</strong></div>
+</div>
+</div>
+</section>
+</main>
+
+<script>
+const $=id=>document.getElementById(id);
+const RATE=12; // Demo hourly wage (RM)
+const STORE='LD_STAFF_DEMO_V4';
+const TZ='Asia/Kuala_Lumpur';
+let lang='en';
+let stream=null;
+let photo=null;
+let viewing=new Date();
+let data={shifts:[],active:null};
+
+try{
+  const saved=JSON.parse(localStorage.getItem(STORE));
+  if(saved && Array.isArray(saved.shifts))data=saved;
+  lang=localStorage.getItem('LD_LANG')||'en';
+}catch(e){}
+
+function tr(en,zh){return lang==='zh'?zh:en}
+
+function language(l){
+  lang=l;
+  try{localStorage.setItem('LD_LANG',l)}catch(e){}
+  document.querySelectorAll('[data-en]').forEach(e=>{
+    e.textContent=e.dataset[l];
+  });
+  $('en').classList.toggle('active',l==='en');
+  $('zh').classList.toggle('active',l==='zh');
+  document.documentElement.lang=l==='zh'?'zh-CN':'en';
+  $('demoNote').textContent=tr(
+    'DEMO MODE · Records saved on this device only',
+    '演示模式 · 记录仅保存在此设备'
+  );
+  clock();
+  status();
+  render();
+}
+
+function clock(){
+  const n=new Date();
+  $('clock').textContent=n.toLocaleTimeString('en-US',{
+    timeZone:TZ,hour:'2-digit',minute:'2-digit',
+    second:'2-digit',hour12:true
+  });
+  $('date').textContent=n.toLocaleDateString(
+    lang==='zh'?'zh-CN':'en-MY',
+    {timeZone:TZ,weekday:'long',year:'numeric',month:'long',day:'numeric'}
+  );
+}
+setInterval(clock,1000);
+
+function dateKey(n){
+  return new Intl.DateTimeFormat('en-CA',{
+    timeZone:TZ,year:'numeric',month:'2-digit',day:'2-digit'
+  }).format(n);
+}
+function time(n){
+  return new Date(n).toLocaleTimeString('en-US',{
+    timeZone:TZ,hour:'2-digit',minute:'2-digit',hour12:true
+  });
+}
+
+function save(){
+  try{
+    localStorage.setItem(STORE,JSON.stringify(data));
+    return true;
+  }catch(e){
+    error(tr('Cannot save on this device','无法保存至此设备'));
+    return false;
+  }
+}
+function error(msg){
+  $('error').textContent=msg;
+  $('error').classList.toggle('hidden',!msg);
+}
+function status(){
+  $('checkIn').disabled=!!data.active;
+  $('checkOut').disabled=!data.active;
+  $('status').textContent=data.active
+    ?tr('🟢 Checked In','🟢 已上班')
+    :tr('Not Checked In','尚未上班');
+}
+function page(p){
+  $('home').classList.toggle('hidden',p!=='home');
+  $('records').classList.toggle('hidden',p!=='records');
+  $('homeTab').classList.toggle('active',p==='home');
+  $('recordTab').classList.toggle('active',p==='records');
+  if(p==='records'){stopCamera();render()}
+}
+function stopCamera(){
+  if(stream){
+    stream.getTracks().forEach(t=>t.stop());
+    stream=null;
+  }
+  $('video').srcObject=null;
+  $('video').classList.add('hidden');
+  $('photoButton').classList.add('hidden');
+}
+async function openCamera(){
+  error('');
+  stopCamera();
+  photo=null;
+  $('preview').classList.add('hidden');
+  try{
+    if(!navigator.mediaDevices?.getUserMedia){
+      throw new Error('Camera API unavailable');
+    }
+    stream=await navigator.mediaDevices.getUserMedia({
+      audio:false,video:{facingMode:'user'}
+    });
+    $('video').srcObject=stream;
+    $('video').classList.remove('hidden');
+    $('placeholder').classList.add('hidden');
+    $('photoButton').classList.remove('hidden');
+    await $('video').play();
+  }catch(e){
+    stopCamera();
+    error(tr('Cannot open camera. Check browser permissions and HTTPS.',
+      '无法打开相机，请检查浏览器权限及 HTTPS。'));
+  }
+}
+function takePhoto(){
+  const video=$('video');
+  if(!stream||!video.videoWidth)return;
+  const canvas=document.createElement('canvas');
+  const scale=Math.min(1,900/Math.max(video.videoWidth,video.videoHeight));
+  canvas.width=Math.round(video.videoWidth*scale);
+  canvas.height=Math.round(video.videoHeight*scale);
+  canvas.getContext('2d').drawImage(video,0,0,canvas.width,canvas.height);
+  photo=canvas.toDataURL('image/jpeg',.72);
+  $('preview').src=photo;
+  $('preview').classList.remove('hidden');
+  $('placeholder').classList.add('hidden');
+  stopCamera();
+}
+function attendance(action){
+  if(!photo){
+    error(tr('Please take a live photo first','请先实时拍照'));
+    return;
+  }
+  const n=new Date();
+  if(action==='in'){
+    if(data.active)return;
+    data.active={date:dateKey(n),start:n.toISOString()};
+  }else{
+    if(!data.active)return;
+    const start=new Date(data.active.start);
+    const h=Math.max(0,(n-start)/3600000);
+    data.shifts.push({
+      date:data.active.date,
+      start:data.active.start,
+      end:n.toISOString(),
+      hours:h,
+      salary:h*RATE
+    });
+    data.active=null;
+  }
+  if(!save())return;
+  photo=null;
+  $('preview').classList.add('hidden');
+  $('placeholder').classList.remove('hidden');
+  status();
+  render();
+  alert(tr('Demo attendance saved','演示打卡已保存'));
+}
+function changeMonth(n){
+  viewing=new Date(viewing.getFullYear(),viewing.getMonth()+n,1);
+  render();
+}
+function render(){
+  const month=viewing.getFullYear()+'-'+String(viewing.getMonth()+1).padStart(2,'0');
+  $('month').textContent=lang==='zh'
+    ?viewing.getFullYear()+'年'+(viewing.getMonth()+1)+'月'
+    :viewing.toLocaleDateString('en-US',{month:'long',year:'numeric'});
+
+  const days={};
+  data.shifts.forEach(s=>{
+    if(!s.date.startsWith(month))return;
+    if(!days[s.date])days[s.date]={date:s.date,first:null,last:null,hours:0,salary:0};
+    const d=days[s.date];
+    d.first=d.first===null?s.start:
+      new Date(s.start)<new Date(d.first)?s.start:d.first;
+    d.last=d.last===null?s.end:
+      new Date(s.end)>new Date(d.last)?s.end:d.last;
+    d.hours+=s.hours;
+    d.salary+=s.salary;
+  });
+  if(data.active?.date.startsWith(month)){
+    const a=data.active;
+    if(!days[a.date])days[a.date]={date:a.date,first:a.start,last:null,hours:0,salary:0};
+  }
+  const list=Object.values(days).sort((a,b)=>b.date.localeCompare(a.date));
+  let hours=0,salary=0;
+  $('rows').innerHTML=list.length?list.map(d=>{
+    hours+=d.hours;salary+=d.salary;
+    return `<tr><td>${d.date.slice(5)}</td>
+    <td>${time(d.first)}</td><td>${d.last?time(d.last):'--'}</td>
+    <td class="right">${d.hours.toFixed(2)}h</td>
+    <td class="right">RM${d.salary.toFixed(2)}</td></tr>`;
+  }).join(''):`<tr><td colspan="5">${tr('No records','没有记录')}</td></tr>`;
+  $('days').textContent=list.length;
+  $('hours').textContent=hours.toFixed(2)+'h';
+  $('salary').textContent='RM'+salary.toFixed(2);
+}
+window.addEventListener('pagehide',stopCamera);
+language(lang);
+</script>
+</body>
+</html>
+
