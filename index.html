@@ -5,34 +5,36 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Lucky Dessert Staff</title>
+
 <style>
 *{box-sizing:border-box}
 body{margin:0;background:#fff;color:#392f2a;font-family:Arial,sans-serif}
+button,input{font:inherit}
+button{border:0;border-radius:11px;padding:12px;font-weight:bold;cursor:pointer}
+button:disabled{opacity:.4;cursor:not-allowed}
 header{background:#fff9f5;border-bottom:1px solid #edddd1;padding:16px}
 .header{max-width:850px;margin:auto;display:flex;align-items:center;justify-content:space-between;gap:12px}
 .logo{font-size:20px;font-weight:900}
 .subtitle{font-size:11px;color:#a38979;margin-top:5px}
 .language{display:flex;gap:5px;background:#f6e9e1;padding:4px;border-radius:30px}
-.language button{background:transparent;border:0;padding:8px;color:#9b705d}
-.language button.active{background:#d36a53;color:#fff}
-button{border:0;border-radius:11px;padding:12px;font-weight:bold;cursor:pointer}
-button:disabled{opacity:.4}
+.language button{background:transparent;color:#9b705d;padding:8px}
+.language button.active{background:#d36a53;color:white}
 main{max-width:850px;margin:auto;padding:16px}
+h2{font-size:21px}
 .tabs{display:flex;gap:9px;margin-bottom:18px}
 .tabs button{flex:1;background:#f4e6dc;color:#a06953}
 .tabs button.active{background:#d36a53;color:white}
 .card{background:#fffaf6;border:1px solid #efdfd4;border-radius:17px;padding:17px;margin-bottom:15px}
-h2{font-size:21px}
 .clock{font-size:clamp(30px,7vw,48px);font-weight:900;color:#ce6851;text-align:center;font-variant-numeric:tabular-nums;margin:15px 0 8px}
 .date{text-align:center;color:#9b8478;font-size:12px;margin-bottom:20px}
-.camera{border:2px dashed #e6c7b4;background:#fff;border-radius:14px;min-height:160px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:9px;overflow:hidden;padding:12px}
+.camera{border:2px dashed #e6c7b4;background:white;border-radius:14px;min-height:160px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:9px;overflow:hidden;padding:12px}
 video,img.preview{width:100%;max-height:280px;object-fit:contain;border-radius:10px}
 .cameraIcon{font-size:40px}
-.primary{width:100%;background:#d36a53;color:#fff;margin-top:12px}
+.primary{width:100%;background:#d36a53;color:white;margin-top:12px}
 .secondary{width:100%;background:#f1ded1;color:#875742;margin-top:8px}
 .actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:15px}
-.in{background:#52947b;color:#fff}
-.out{background:#d36a53;color:#fff}
+.in{background:#52947b;color:white}
+.out{background:#d36a53;color:white}
 .status{text-align:center;color:#997c6d;font-size:12px;margin-top:15px}
 .hidden{display:none!important}
 .monthNav{display:flex;justify-content:space-between;align-items:center;gap:9px;margin-bottom:14px}
@@ -46,7 +48,14 @@ th{background:#fff1e8;color:#94796a}
 .summary div{background:#f8e8db;border-radius:12px;padding:13px 5px;text-align:center;font-size:11px;color:#946b55}
 .summary strong{display:block;color:#ba5e46;font-size:18px;margin-top:8px}
 .note{font-size:11px;color:#a18b7e;text-align:center;margin:13px}
-.error{background:#ffeae5;color:#ae493a;padding:12px;border-radius:10px;margin-bottom:12px}
+.error{background:#ffeae5;color:#ae493a;padding:12px;border-radius:10px;margin-bottom:12px;white-space:pre-wrap}
+.modalBg{position:fixed;inset:0;background:#34241dcc;display:grid;place-items:center;padding:15px;z-index:20}
+.modal{background:#fff;border-radius:20px;padding:24px;width:min(400px,100%);box-shadow:0 10px 40px #0003}
+.modal h2{margin-top:0}
+.modal p{color:#94796a;font-size:13px;line-height:1.5}
+.modal input{width:100%;border:1px solid #e9d5c8;border-radius:10px;padding:13px;outline-color:#d36a53}
+.modal .primary{margin-top:14px}
+.modalError{color:#b64736;font-size:12px;margin-top:10px}
 @media(max-width:550px){
 main{padding:12px}
 .card{padding:13px}
@@ -56,6 +65,7 @@ th,td{font-size:10px;padding:10px 4px}
 }
 </style>
 </head>
+
 <body>
 
 <header>
@@ -72,6 +82,7 @@ th,td{font-size:10px;padding:10px 4px}
 </header>
 
 <main>
+
 <div class="tabs">
 <button id="homeTab" class="active" onclick="page('home')" data-en="📸 Attendance" data-zh="📸 打卡">📸 Attendance</button>
 <button id="recordTab" onclick="page('records')" data-en="🗓 My Records" data-zh="🗓 我的记录">🗓 My Records</button>
@@ -80,7 +91,8 @@ th,td{font-size:10px;padding:10px 4px}
 <div id="error" class="error hidden"></div>
 
 <section id="home">
-<h2 data-en="Welcome! 🧁" data-zh="欢迎回来！🧁">Welcome! 🧁</h2>
+<h2 id="greeting">Welcome! 🧁</h2>
+
 <div class="card">
 <div class="clock" id="clock">--:--:-- --</div>
 <div class="date" id="date"></div>
@@ -98,22 +110,26 @@ th,td{font-size:10px;padding:10px 4px}
 <button class="primary hidden" id="photoButton" onclick="takePhoto()" data-en="📸 Take Photo" data-zh="📸 拍照确认">📸 Take Photo</button>
 
 <div class="actions">
-<button class="in" onclick="attendance('in')" id="checkIn" data-en="Check In" data-zh="上班打卡">Check In</button>
-<button class="out" onclick="attendance('out')" id="checkOut" data-en="Check Out" data-zh="下班打卡">Check Out</button>
+<button class="in" onclick="attendance('in')" id="checkIn" disabled data-en="Check In" data-zh="上班打卡">Check In</button>
+<button class="out" onclick="attendance('out')" id="checkOut" disabled data-en="Check Out" data-zh="下班打卡">Check Out</button>
 </div>
-<div class="status" id="status"></div>
+
+<div class="status" id="status">Connecting...</div>
 </div>
-<div class="note" id="demoNote">DEMO MODE · Records saved on this device only</div>
+
+<div class="note" id="connectionNote">Google Sheets & Drive connection</div>
 </section>
 
 <section id="records" class="hidden">
 <h2 data-en="My Records" data-zh="我的记录">My Records</h2>
+
 <div class="card">
 <div class="monthNav">
 <button onclick="changeMonth(-1)">❮</button>
 <strong id="month"></strong>
 <button onclick="changeMonth(1)">❯</button>
 </div>
+
 <div class="tableWrap">
 <table>
 <thead>
@@ -129,6 +145,7 @@ th,td{font-size:10px;padding:10px 4px}
 </table>
 </div>
 </div>
+
 <div class="card">
 <h3 data-en="Monthly Summary" data-zh="本月总结算">Monthly Summary</h3>
 <div class="summary">
@@ -140,143 +157,135 @@ th,td{font-size:10px;padding:10px 4px}
 </section>
 </main>
 
+<!-- DEVICE ACTIVATION -->
+<div id="activation" class="modalBg hidden">
+<div class="modal">
+<h2>🍮 Lucky Dessert</h2>
+<p id="activationText">Enter your private Staff Activation Code to connect this device.</p>
+<form onsubmit="activate(event)">
+<input id="activationCode" type="password" autocomplete="off" placeholder="Activation Code" required>
+<div id="activationError" class="modalError"></div>
+<button id="activateBtn" class="primary" type="submit">Activate Staff APP</button>
+</form>
+</div>
+</div>
 
 <script>
-const API = 'https://lucky-dessert-api.scxj369.workers.dev';
-const TZ = 'Asia/Kuala_Lumpur';
-const $ = id => document.getElementById(id);
+const API='https://lucky-dessert-api.scxj369.workers.dev';
+const TZ='Asia/Kuala_Lumpur';
+const $=id=>document.getElementById(id);
 
-let lang = localStorage.getItem('LD_LANG') || 'en';
-let token = sessionStorage.getItem('LD_STAFF_SESSION') || '';
-let stream = null;
-let photo = null;
-let viewing = new Date();
-let records = [];
-let working = false;
-let loaded = false;
-let busy = false;
-let staffName = '';
+let lang='en';
+try{lang=localStorage.getItem('LD_LANG')||'en'}catch(e){}
 
-function tr(en, zh) {
-  return lang === 'zh' ? zh : en;
+let token='';
+try{token=sessionStorage.getItem('LD_STAFF_SESSION')||''}catch(e){}
+
+let stream=null;
+let photo=null;
+let records=[];
+let viewing=new Date();
+let working=false;
+let loaded=false;
+let busy=false;
+let staffName='';
+
+function tr(en,zh){return lang==='zh'?zh:en}
+
+function showError(msg){
+  $('error').textContent=msg||'';
+  $('error').classList.toggle('hidden',!msg);
 }
 
-function showError(message) {
-  $('error').textContent = message || '';
-  $('error').classList.toggle('hidden', !message);
-}
-
-function language(l) {
-  lang = l;
-  localStorage.setItem('LD_LANG', l);
-
-  document.querySelectorAll('[data-en]').forEach(el => {
-    el.textContent = el.dataset[l];
+function language(l){
+  lang=l==='zh'?'zh':'en';
+  try{localStorage.setItem('LD_LANG',lang)}catch(e){}
+  document.querySelectorAll('[data-en]').forEach(el=>{
+    el.textContent=el.dataset[lang];
   });
-
-  $('en').classList.toggle('active', l === 'en');
-  $('zh').classList.toggle('active', l === 'zh');
-
-  document.documentElement.lang = l === 'zh' ? 'zh-CN' : 'en';
-
-  $('demoNote').textContent = tr(
-    'Attendance connected to Lucky Dessert database',
-    '打卡记录已连接 Lucky Dessert 数据库'
+  $('en').classList.toggle('active',lang==='en');
+  $('zh').classList.toggle('active',lang==='zh');
+  document.documentElement.lang=lang==='zh'?'zh-CN':'en';
+  $('activationText').textContent=tr(
+    'Enter your private Staff Activation Code to connect this device.',
+    '请输入员工激活码连接设备。'
   );
-
+  $('activateBtn').textContent=tr('Activate Staff APP','激活员工 APP');
+  $('activationCode').placeholder=tr('Activation Code','激活码');
+  $('connectionNote').textContent=tr(
+    'Connected through Cloudflare to Google Sheets & Drive',
+    '通过 Cloudflare 连接 Google Sheets 和 Drive'
+  );
+  $('greeting').textContent=staffName
+    ?tr('Hello, ','你好，')+staffName+'! 🧁'
+    :tr('Welcome! 🧁','欢迎回来！🧁');
   clock();
   status();
   render();
 }
 
-function clock() {
-  const now = new Date();
-
-  $('clock').textContent = now.toLocaleTimeString('en-US', {
-    timeZone: TZ,
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-    hour12: true
+function clock(){
+  const now=new Date();
+  $('clock').textContent=now.toLocaleTimeString('en-US',{
+    timeZone:TZ,hour:'2-digit',minute:'2-digit',
+    second:'2-digit',hour12:true
   });
-
-  $('date').textContent = now.toLocaleDateString(
-    lang === 'zh' ? 'zh-CN' : 'en-MY',
-    {
-      timeZone: TZ,
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    }
+  $('date').textContent=now.toLocaleDateString(
+    lang==='zh'?'zh-CN':'en-MY',
+    {timeZone:TZ,weekday:'long',year:'numeric',month:'long',day:'numeric'}
   );
 }
+setInterval(clock,1000);
 
-setInterval(clock, 1000);
-
-function status() {
-  $('checkIn').disabled = !loaded || busy || working;
-  $('checkOut').disabled = !loaded || busy || !working;
-
-  $('status').textContent = busy
-    ? tr('Saving...', '正在保存...')
-    : !loaded
-      ? tr('Connecting...', '正在连接...')
-      : working
-        ? tr('🟢 Checked In', '🟢 已上班')
-        : tr('Not Checked In', '尚未上班');
+function status(){
+  $('checkIn').disabled=!loaded||busy||working;
+  $('checkOut').disabled=!loaded||busy||!working;
+  $('status').textContent=busy
+    ?tr('Saving...','正在保存...')
+    :!loaded
+      ?tr('Connecting...','正在连接...')
+      :working
+        ?tr('🟢 Checked In','🟢 已上班')
+        :tr('Not Checked In','尚未上班');
 }
 
-function page(p) {
-  $('home').classList.toggle('hidden', p !== 'home');
-  $('records').classList.toggle('hidden', p !== 'records');
-
-  $('homeTab').classList.toggle('active', p === 'home');
-  $('recordTab').classList.toggle('active', p === 'records');
-
-  if (p === 'records') {
-    stopCamera();
-    render();
-  }
+function page(p){
+  $('home').classList.toggle('hidden',p!=='home');
+  $('records').classList.toggle('hidden',p!=='records');
+  $('homeTab').classList.toggle('active',p==='home');
+  $('recordTab').classList.toggle('active',p==='records');
+  if(p==='records'){stopCamera();render()}
 }
 
-function stopCamera() {
-  if (stream) {
-    stream.getTracks().forEach(track => track.stop());
-    stream = null;
+function stopCamera(){
+  if(stream){
+    stream.getTracks().forEach(t=>t.stop());
+    stream=null;
   }
-
-  $('video').srcObject = null;
+  $('video').srcObject=null;
   $('video').classList.add('hidden');
   $('photoButton').classList.add('hidden');
 }
 
-async function openCamera() {
+async function openCamera(){
   showError('');
   stopCamera();
-
-  photo = null;
+  photo=null;
   $('preview').classList.add('hidden');
-
-  try {
-    if (!navigator.mediaDevices?.getUserMedia) {
+  try{
+    if(!navigator.mediaDevices?.getUserMedia){
       throw new Error('Camera unavailable');
     }
-
-    stream = await navigator.mediaDevices.getUserMedia({
-      audio: false,
-      video: { facingMode: 'user' }
+    stream=await navigator.mediaDevices.getUserMedia({
+      audio:false,
+      video:{facingMode:'user'}
     });
-
-    $('video').srcObject = stream;
+    $('video').srcObject=stream;
     $('video').classList.remove('hidden');
-
     $('placeholder').classList.add('hidden');
     $('photoButton').classList.remove('hidden');
-
     await $('video').play();
-
-  } catch (err) {
+  }catch(e){
     stopCamera();
     showError(tr(
       'Cannot open camera. Please allow camera permission.',
@@ -285,166 +294,135 @@ async function openCamera() {
   }
 }
 
-function takePhoto() {
-  const video = $('video');
+function takePhoto(){
+  const video=$('video');
+  if(!stream||!video.videoWidth)return;
 
-  if (!stream || !video.videoWidth) {
-    showError(tr('Camera not ready', '相机尚未准备好'));
-    return;
-  }
+  const canvas=document.createElement('canvas');
+  const scale=Math.min(1,900/Math.max(
+    video.videoWidth,video.videoHeight
+  ));
 
-  const canvas = document.createElement('canvas');
-  const scale = Math.min(
-    1,
-    900 / Math.max(video.videoWidth, video.videoHeight)
-  );
-
-  canvas.width = Math.round(video.videoWidth * scale);
-  canvas.height = Math.round(video.videoHeight * scale);
-
+  canvas.width=Math.round(video.videoWidth*scale);
+  canvas.height=Math.round(video.videoHeight*scale);
   canvas.getContext('2d').drawImage(
-    video, 0, 0, canvas.width, canvas.height
+    video,0,0,canvas.width,canvas.height
   );
 
-  photo = canvas.toDataURL('image/jpeg', 0.72);
-
-  $('preview').src = photo;
+  photo=canvas.toDataURL('image/jpeg',0.72);
+  $('preview').src=photo;
   $('preview').classList.remove('hidden');
   $('placeholder').classList.add('hidden');
-
   stopCamera();
 }
 
-function resetPhoto() {
+function resetPhoto(){
   stopCamera();
-
-  photo = null;
-  $('preview').src = '';
+  photo=null;
+  $('preview').src='';
   $('preview').classList.add('hidden');
   $('placeholder').classList.remove('hidden');
 }
 
-// CLOUDFLARE API CONNECTION
-
-async function requestAPI(path, method = 'GET', body = null) {
-  const options = {
+async function api(path,method='GET',body=null){
+  const options={
     method,
-    headers: {
-      Authorization: 'Bearer ' + token
-    },
-    cache: 'no-store'
+    headers:{Authorization:'Bearer '+token},
+    cache:'no-store'
   };
-
-  if (body !== null) {
-    options.headers['Content-Type'] = 'application/json';
-    options.body = JSON.stringify(body);
+  if(body!==null){
+    options.headers['Content-Type']='application/json';
+    options.body=JSON.stringify(body);
   }
 
-  const response = await fetch(API + path, options);
-
+  const response=await fetch(API+path,options);
   let result;
-  try {
-    result = await response.json();
-  } catch {
-    throw new Error('Invalid server response');
-  }
+  try{result=await response.json()}
+  catch(e){throw new Error('Invalid server response')}
 
-  if (response.status === 401) {
-    token = '';
-    sessionStorage.removeItem('LD_STAFF_SESSION');
-    loaded = false;
+  if(response.status===401){
+    token='';
+    try{sessionStorage.removeItem('LD_STAFF_SESSION')}catch(e){}
+    loaded=false;
+    $('activation').classList.remove('hidden');
     status();
-    throw new Error('Session expired. Activate the device again.');
+    throw new Error('Session expired. Please activate again.');
   }
-
-  if (!response.ok || result.success === false) {
-    throw new Error(result.error || 'Server error');
+  if(!response.ok||result.success===false){
+    throw new Error(result.error||'Server error');
   }
-
   return result;
 }
 
-async function activateDevice() {
-  const code = prompt(
-    'Lucky Dessert Staff\nEnter your private activation code:'
-  );
+async function activate(event){
+  event.preventDefault();
+  const code=$('activationCode').value.trim();
+  if(!code)return;
 
-  if (!code) {
-    showError('Activation required. Tap the status text to retry.');
-    return false;
-  }
+  $('activateBtn').disabled=true;
+  $('activationError').textContent='';
 
-  try {
-    const response = await fetch(API + '/api/activate', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ code: code.trim() })
+  try{
+    const response=await fetch(API+'/api/activate',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({code})
     });
 
-    const result = await response.json();
-
-    if (!response.ok || !result.token) {
-      throw new Error(result.error || 'Activation failed');
+    const result=await response.json();
+    if(!response.ok||!result.token){
+      throw new Error(result.error||'Activation failed');
     }
 
-    token = result.token;
-    sessionStorage.setItem('LD_STAFF_SESSION', token);
-    return true;
+    token=result.token;
+    try{
+      sessionStorage.setItem('LD_STAFF_SESSION',token);
+    }catch(e){}
 
-  } catch (err) {
-    showError(err.message);
-    return false;
+    $('activationCode').value='';
+    $('activation').classList.add('hidden');
+    await loadHome();
+
+  }catch(e){
+    $('activationError').textContent=e.message;
+    if(!token)$('activation').classList.remove('hidden');
+  }finally{
+    $('activateBtn').disabled=false;
   }
 }
 
-// LOAD REAL DATA FROM GOOGLE SHEETS
-
-async function loadHome() {
-  busy = true;
+async function loadHome(){
+  busy=true;
+  loaded=false;
   status();
   showError('');
 
-  try {
-    const result = await requestAPI('/api/home');
+  try{
+    const result=await api('/api/home');
+    const data=result.data;
 
-    const data = result.data;
+    staffName=data.staff.name;
+    working=Boolean(data.working);
+    records=data.records||[];
+    loaded=true;
 
-    staffName = data.staff.name;
-    records = data.records || [];
-    working = Boolean(data.working);
-    loaded = true;
-
-    const today = data.now.date.split('-');
-
-    viewing = new Date(
-      Number(today[0]),
-      Number(today[1]) - 1,
-      1
+    const parts=data.now.date.split('-');
+    viewing=new Date(
+      Number(parts[0]),Number(parts[1])-1,1
     );
 
-    const heading = document.querySelector('#home h2');
-    heading.removeAttribute('data-en');
-    heading.removeAttribute('data-zh');
-    heading.textContent = 'Hello, ' + staffName + '! 🧁';
-
-    render();
-
-  } catch (err) {
-    loaded = false;
-    showError(err.message);
-
-  } finally {
-    busy = false;
+    language(lang);
+  }catch(e){
+    showError(e.message);
+  }finally{
+    busy=false;
     status();
   }
 }
 
-// SAVE REAL ATTENDANCE
-
-async function attendance(action) {
-  if (!loaded || busy) return;
-
-  if (!photo) {
+async function attendance(action){
+  if(!loaded||busy)return;
+  if(!photo){
     showError(tr(
       'Please take a live photo first.',
       '请先实时拍照。'
@@ -452,156 +430,102 @@ async function attendance(action) {
     return;
   }
 
-  busy = true;
+  busy=true;
   status();
   showError('');
 
-  try {
-    const result = await requestAPI(
-      '/api/attendance',
-      'POST',
-      {
-        action: action === 'in' ? 'checkin' : 'checkout',
-        photo
-      }
-    );
+  try{
+    const result=await api('/api/attendance','POST',{
+      action:action==='in'?'checkin':'checkout',
+      photo
+    });
 
-    const data = result.data;
-
-    working = Boolean(data.working);
-    records = data.records || [];
-
+    working=Boolean(result.data.working);
+    records=result.data.records||[];
     resetPhoto();
     render();
 
     alert(tr(
-      action === 'in'
-        ? 'Check In Successful!'
-        : 'Check Out Successful!',
-      action === 'in'
-        ? '上班打卡成功！'
-        : '下班打卡成功！'
+      action==='in'?'Check In Successful!':'Check Out Successful!',
+      action==='in'?'上班打卡成功！':'下班打卡成功！'
     ));
-
-  } catch (err) {
-    showError(err.message);
-
-  } finally {
-    busy = false;
+  }catch(e){
+    showError(e.message);
+  }finally{
+    busy=false;
     status();
   }
 }
 
-// DAILY RECORDS
-
-function money(value) {
-  return 'RM' + Number(value || 0).toFixed(2);
+function money(n){
+  return 'RM'+Number(n||0).toFixed(2);
 }
 
-function changeMonth(n) {
-  viewing = new Date(
-    viewing.getFullYear(),
-    viewing.getMonth() + n,
-    1
+function changeMonth(n){
+  viewing=new Date(
+    viewing.getFullYear(),viewing.getMonth()+n,1
   );
-
   render();
 }
 
-function render() {
-  const month =
-    viewing.getFullYear() + '-' +
-    String(viewing.getMonth() + 1).padStart(2, '0');
+function render(){
+  const month=viewing.getFullYear()+'-'+
+    String(viewing.getMonth()+1).padStart(2,'0');
 
-  $('month').textContent = lang === 'zh'
-    ? viewing.getFullYear() + '年' +
-      (viewing.getMonth() + 1) + '月'
-    : viewing.toLocaleDateString('en-US', {
-        month: 'long',
-        year: 'numeric'
-      });
+  $('month').textContent=lang==='zh'
+    ?viewing.getFullYear()+'年'+(viewing.getMonth()+1)+'月'
+    :viewing.toLocaleDateString('en-US',{
+      month:'long',year:'numeric'
+    });
 
-  const list = records.filter(
-    r => r.date.startsWith(month)
-  );
-
-  let totalHours = 0;
-  let totalSalary = 0;
-
+  const list=records.filter(r=>r.date.startsWith(month));
+  let hours=0,salary=0;
   $('rows').replaceChildren();
 
-  if (!list.length) {
-    const row = document.createElement('tr');
-    const cell = document.createElement('td');
-    cell.colSpan = 5;
-    cell.textContent = tr('No records', '没有记录');
+  if(!list.length){
+    const row=document.createElement('tr');
+    const cell=document.createElement('td');
+    cell.colSpan=5;
+    cell.textContent=tr('No records','没有记录');
     row.appendChild(cell);
     $('rows').appendChild(row);
   }
 
-  list.forEach(r => {
-    totalHours += Number(r.hours || 0);
-    totalSalary += Number(r.salary || 0);
+  list.forEach(r=>{
+    hours+=Number(r.hours||0);
+    salary+=Number(r.salary||0);
 
-    const row = document.createElement('tr');
-
-    const values = [
-      r.date.slice(5) + (r.incomplete ? ' *' : ''),
-      r.checkIn,
-      r.checkOut,
-      Number(r.hours || 0).toFixed(2) + 'h',
+    const row=document.createElement('tr');
+    const values=[
+      r.date.slice(5)+(r.incomplete?' *':''),
+      r.checkIn||'--',
+      r.checkOut||'--',
+      Number(r.hours||0).toFixed(2)+'h',
       money(r.salary)
     ];
 
-    values.forEach((value, index) => {
-      const cell = document.createElement('td');
-      cell.textContent = value;
-
-      if (index >= 3) cell.className = 'right';
-
+    values.forEach((value,i)=>{
+      const cell=document.createElement('td');
+      cell.textContent=value;
+      if(i>=3)cell.className='right';
       row.appendChild(cell);
     });
-
     $('rows').appendChild(row);
   });
 
-  $('days').textContent = list.length;
-  $('hours').textContent = totalHours.toFixed(2) + 'h';
-  $('salary').textContent = money(totalSalary);
+  $('days').textContent=list.length;
+  $('hours').textContent=hours.toFixed(2)+'h';
+  $('salary').textContent=money(salary);
 }
 
-// START APP
-
-async function startApp() {
-  clock();
-  status();
-
-  if (!token) {
-    const activated = await activateDevice();
-    if (!activated) return;
-  }
-
-  await loadHome();
-}
-
-// Retry activation if needed.
-$('status').addEventListener('click', async () => {
-  if (loaded || busy) return;
-
-  if (!token) {
-    const activated = await activateDevice();
-    if (!activated) return;
-  }
-
-  await loadHome();
-});
-
-window.addEventListener('pagehide', stopCamera);
+window.addEventListener('pagehide',stopCamera);
 
 language(lang);
-startApp();
+if(token){
+  loadHome();
+}else{
+  $('activation').classList.remove('hidden');
+}
 </script>
-
 </body>
 </html>
-
